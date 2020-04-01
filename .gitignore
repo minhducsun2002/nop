@@ -1,0 +1,8 @@
+.env
+package-lock.json
+yarn.lock
+node_modules
+dist
+config
+!src/**/*
+nop-worker*

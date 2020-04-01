@@ -1,0 +1,29 @@
+{
+  "name": "nop",
+  "version": "0.0.1",
+  "description": "Wafter worker for Linux",
+  "author": "Minh Duc Vo <minhducsun2002@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "@types/crypto-js": "^3.1.44",
+    "@types/node": "^13.9.5",
+    "@types/ws": "^7.2.3",
+    "@types/yargs": "^15.0.4",
+    "ts-node": "^8.8.1",
+    "ts-node-dev": "^1.0.0-pre.44",
+    "typescript": "^3.8.3"
+  },
+  "scripts": {
+    "dev": "ts-node-dev --respawn --no-notify --prefer-ts --transpile-only src/index.ts",
+    "dev:preconfig": "ts-node-dev --respawn --no-notify --prefer-ts --transpile-only src/index.ts -k test -a localhost:3001/kon"
+  },
+  "dependencies": {
+    "chalk": "^3.0.0",
+    "crypto-js": "^4.0.0",
+    "queue-typescript": "^1.0.1",
+    "validate.js": "^0.13.1",
+    "ws": "^7.2.3",
+    "yargs": "^15.3.1"
+  }
+}
