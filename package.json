@@ -21,6 +21,7 @@
   "dependencies": {
     "chalk": "^3.0.0",
     "crypto-js": "^4.0.0",
+    "md5-typescript": "^1.0.5",
     "queue-typescript": "^1.0.1",
     "validate.js": "^0.13.1",
     "ws": "^7.2.3",

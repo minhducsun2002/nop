@@ -1,11 +1,13 @@
 import type { Submission, Result } from '.';
 import { compilers as c } from '../compilers';
 import { extname, join } from 'path';
-import { writeFileSync } from 'fs';
+import { writeFileSync, copyFileSync } from 'fs';
 import { execSync } from 'child_process';
 import type { spawnSync } from 'child_process';
+import { Md5 } from 'md5-typescript';
 
 import { componentLog } from '../logger';
+import chalk from 'chalk';
 
 // prepare compilers
 const compilers = new Map<string, typeof c[0]>();
@@ -55,6 +57,25 @@ export default function (
     }
 
     // at this point, it can be considered submissions successfully compiled
+    let outputPath = join(workspace, output);
     // now is time to run?
+    logger.info(`Successfully compiled submission ${chalk.bgBlueBright(id)}.`)
     
+    try {
+        // maximum box count = 1000
+        // isolate said so??
+        let boxId = parseInt(Md5.init(workspace).slice(0, 4), 16) % 1000;
+        if (!Number.isSafeInteger(boxId)) boxId = 0;
+
+        // cleanup first
+        execSync('isolate --cleanup', { stdio: 'ignore' });
+        // init
+        let dir = execSync(`isolate --init -b ${boxId}`, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' }).trim();
+        logger.info(`Initialized sandbox at ${chalk.yellowBright(dir)}.`);
+        // copy file
+        copyFileSync(outputPath, join(dir, 'box', output));
+        logger.info(`Copied to ${chalk.yellowBright(join(dir, 'box', output))}.`)
+    } catch (e) {
+        logger.error(`${e}`);
+    }
 }
