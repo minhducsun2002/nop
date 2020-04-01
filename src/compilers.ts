@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { execSync } from 'child_process';
-import { cwd } from './paths';
-import { join } from 'path';
+import { resolve } from 'path';
+import { args } from './args';
 import validate from 'validate.js';
 import { componentLog } from './logger';
 
@@ -40,7 +40,7 @@ interface compilerSetup {
 }
 
 // utils declaration
-const compiler_json_path = join(cwd, 'compiler.json');
+const compiler_json_path = resolve(args.compilers);
 const logger = new componentLog('Environment', '#ff9999', '#000');
 // custom type
 validate.validators.type.types['array.string'] = (value : any) => validate.isArray(value) && validate.isString(value[0]);
@@ -107,6 +107,7 @@ try {
 
 // check
 logger.info('Checking environment...');
+logger.info(`Reading compilers declaration from ${chalk.greenBright(compiler_json_path)}.`)
 checks.forEach(([call, name]) => {
     let { pass, info } = (call as () => check)();
     (pass ? logger.success : logger.error)(`${name} : ${info}`);

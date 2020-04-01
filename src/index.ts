@@ -1,4 +1,12 @@
 import { args } from './args';
+
+// for --version, print & exit
+if (args.version) {
+    const json = require('../package.json');
+    console.log(json.version);
+    process.exit()
+}
+
 import ws from 'ws';
 import crypto from 'crypto-js';
 import chalk from 'chalk';

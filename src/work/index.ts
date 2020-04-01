@@ -2,6 +2,8 @@ import { Queue } from 'queue-typescript';
 import { EventEmitter } from 'events';
 import run from './run';
 import { mkdtempSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import { componentLog } from '../logger';
 import chalk from 'chalk';
 
@@ -21,9 +23,14 @@ export interface Result {
 
 class Worker extends EventEmitter {
     private queue = new Queue<Submission>();
-    private directory = mkdtempSync('nop-worker-', 'utf8');
+    private directory = mkdtempSync(join(tmpdir(), 'nop-worker-'), 'utf8');
     private idle = true;
     private logger = new componentLog('Worker');
+
+    constructor() {
+        super();
+        this.logger.info(`Initialized worker to use workspace ${chalk.cyanBright(this.directory)}.`)
+    }
 
     // this is the main method to prepare stuff
     run () {
