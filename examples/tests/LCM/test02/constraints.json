@@ -1,0 +1,10 @@
+{
+    "memory": 262144,
+    "wallTime": 1.0,
+    "cpuTime": 1.0,
+    "stackSize": 262144,
+    "extraTime": 1.0,
+    "env": {
+        "ONLINE_JUDGE": "1"
+    }
+}

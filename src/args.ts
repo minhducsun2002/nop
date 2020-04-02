@@ -17,14 +17,19 @@ export let args = yargs
         required: true
     })
     .option('compilers', {
-        description: `Path to compiler declaration.`,
+        description: `Path to compiler declaration. Use default config if not specified.`,
         type: 'string',
-        default: './compiler.json',
         alias: 'c',
-        required: true
+        required: false
     })
     .option('version', {
         description: 'Show version info.',
         type: 'boolean'
+    })
+    .option('tests', {
+        alias: ['t', 'tests-folder'],
+        description: `Link to folder containing tests`,
+        type: 'string',
+        required: true
     })
     .argv

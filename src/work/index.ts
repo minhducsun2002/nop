@@ -5,6 +5,7 @@ import { mkdtempSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { componentLog } from '../logger';
+import '../tests/';
 import chalk from 'chalk';
 
 export interface Submission {

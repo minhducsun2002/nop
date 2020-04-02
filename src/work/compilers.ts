@@ -1,9 +1,9 @@
 import chalk from 'chalk';
 import { execSync } from 'child_process';
 import { resolve } from 'path';
-import { args } from './args';
+import { args } from '../args';
 import validate from 'validate.js';
-import { componentLog } from './logger';
+import { componentLog } from '../logger';
 
 interface check { pass: boolean; info: string };
 interface compilerSetup {
@@ -40,10 +40,11 @@ interface compilerSetup {
 }
 
 // utils declaration
-const compiler_json_path = resolve(args.compilers);
+const compiler_json_path =  args.compilers ? resolve(args.compilers) : resolve(__dirname, '../../presets/compiler.json');
+    // default if not specified
 const logger = new componentLog('Environment', '#ff9999', '#000');
-// custom type
 validate.validators.type.types['array.string'] = (value : any) => validate.isArray(value) && validate.isString(value[0]);
+    // custom type checker
 function isolateCheck(): check {
     try {
         let _ = execSync("isolate --version", { timeout: 5 * 1000, encoding: 'utf8' });

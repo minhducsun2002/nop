@@ -1,5 +1,5 @@
 import type { Submission, Result } from '.';
-import { compilers as c } from '../compilers';
+import { compilers as c } from './compilers';
 import { extname, join } from 'path';
 import { writeFileSync, copyFileSync } from 'fs';
 import { execSync } from 'child_process';
