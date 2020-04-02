@@ -31,7 +31,7 @@ const wsClient = new ws(`ws://${address}`, {  })
     .on('message', (payload : string) => {
         try {
             let { id, name, data } = JSON.parse(payload) as { id: string, name: string, data: string };
-            let code = crypto.Rabbit.decrypt(data, crypto.PBKDF2(key, id), { keySize: 256 / 32 })
+            let code = crypto.AES.decrypt(data, crypto.PBKDF2(key, id, { keySize: 256 / 32 }).toString())
                 .toString(crypto.enc.Utf8);
             code = crypto.enc.Utf8.stringify(crypto.enc.Base64.parse(code));
             
