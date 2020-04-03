@@ -8,6 +8,28 @@ import { validate } from './constraints';
 const logger = new componentLog('Tests', '#8b008b', '#fff');
 const input = 'input.txt', output = 'output.txt', constraints = 'constraints.json';
 
+interface Constraints {
+    /** Maximum memory limit */
+    memory: number;
+    /** Wall time */
+    wallTime: number;
+    /** CPU time */
+    cpuTime: number;
+    /** Maximum stack size */
+    stackSize: number;
+    /**
+     * `-x, --extra-time=<time>`
+     * Set extra timeout, before which a timing-out program is not yet killed, 
+     * so that its real execution time is reported
+     * @see https://github.com/ioi/isolate/blob/990e60b563a4ab2c62010d451ea0e974953ad0f6/isolate.c#L917
+     */
+    extraTime: number;
+    /**
+     * Environment to passed to `isolate`
+     */
+    env: { [id: string]: string; };
+}
+
 interface Test {
     /**
      * Path to input file
@@ -22,6 +44,8 @@ interface Test {
      * The name of the directory containing `input.txt` & `output.txt`
      */
     name: string;
+    /** Test constraints */
+    constraints: Constraints;
 }
 interface Problem { tests: Test[] }
 
@@ -56,9 +80,10 @@ problemsList.forEach(p => {
         // if there was any error, an error should have been thrown
         // at this point, tests are considered valid
         logger.success(`${' '.repeat(_.length)}Prepared test ${chalk.bgGrey(t)}.`);
-        return { input: inp, output: out, name: t }
+        return { input: inp, output: out, name: t, constraints: require(con) }
     })
     problems.set(p, { tests: __ })
 })
 
 export { problems };
+export let names = { input, output, constraints };
