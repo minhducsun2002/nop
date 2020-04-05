@@ -2,14 +2,12 @@ import type { Submission, Result } from '.';
 import { compilers as c } from './compilers';
 import { extname, join, basename } from 'path';
 import { writeFileSync, copyFileSync, readFileSync } from 'fs';
-import { execSync, execFileSync } from 'child_process';
-import type { spawnSync } from 'child_process';
+import { execSync, execFileSync, spawnSync } from 'child_process';
 import { Md5 } from 'md5-typescript';
-import yargs from 'yargs/yargs';
 import { problems, names } from '../tests/';
 import parseLog, { parseStatus } from './isolate';
 import { Verdict } from './verdicts';
-
+import parseCommand from 'argv-split';
 import { componentLog } from '../logger';
 import chalk from 'chalk';
 
@@ -49,12 +47,21 @@ export default function (
 
     // write file to workspace
     writeFileSync(join(workspace, input), code);
+    let compileLog = [] as string[];
     try {
-        command.forEach(c => execSync(c, { cwd: workspace, stdio: ['ignore', 'ignore', 'pipe'] }))
+        command.forEach(c => {
+            let cmd = parseCommand(c);
+            let { stderr } = spawnSync(cmd[0], cmd.slice(1), {
+                encoding: 'utf8',
+                stdio: ['ignore', 'ignore', 'pipe'],
+                cwd: workspace
+            });
+            compileLog.push(stderr);
+        })
     } catch (e) {
         // console.log(e);
         let { pid, stderr, status, signal } = (e as ReturnType<typeof spawnSync>);
-        onResult({
+        return onResult({
             id,
             verdict: 'CE',
             totalScore: 0,
@@ -63,7 +70,6 @@ export default function (
                 : (signal ? `Process PID ${pid} killed with signal ${signal}` : `Process exited with return code ${status}`)
             )
         })
-        return;
     }
 
     // at this point, it can be considered submissions successfully compiled
@@ -112,7 +118,7 @@ export default function (
                     ]
                     .concat(Object.keys(c.env).map(k => `--env=${k}=${c.env[k]}`))
                     .concat(['--run', '--'])
-                    .concat(yargs().parse(exec)._),
+                    .concat(parseCommand(exec)),
                     { encoding: 'utf8', stdio: ['ignore', 'inherit', 'pipe'] },
                 );
             } catch (e) {}
@@ -130,7 +136,7 @@ export default function (
             totalScore: result.reduce((r, c) => r + c.score, 0),
             verdict: result.find(r => r.verdict !== Verdict.ACCEPTED)?.verdict || Verdict.ACCEPTED,
             tests: result,
-            msg: 'yes'
+            msg: compileLog.join('\n')
         })
     } catch (e) {
         logger.error(`${e}`);
