@@ -1,0 +1,20 @@
+[
+    {
+        "extension": "cpp",
+        "command": ["g++ -std=c++17 -O2 -s -DONLINE_JUDGE -o run code.cpp"],
+        "output": "run",
+        "exec": "run",
+        "test": "g++ -v",
+        "input": "code.cpp",
+        "timeout": 10000
+    },
+    {
+        "extension": "py",
+        "command": ["python3 -c \"import\\ py_compile\\ as\\ m;m.compile('code.py','code.pyc',doraise=True)\""],
+        "output": "code.pyc",
+        "exec": "python3 code.pyc",
+        "test": "python3 --version",
+        "input": "code.py",
+        "timeout": 10000
+    }
+]

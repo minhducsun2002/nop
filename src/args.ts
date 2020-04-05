@@ -17,10 +17,10 @@ export let args = yargs
         required: true
     })
     .option('compilers', {
-        description: `Path to compiler declaration. Use default config if not specified.`,
+        description: `Path to compiler declaration`,
         type: 'string',
         alias: 'c',
-        required: false
+        required: true
     })
     .option('version', {
         description: 'Show version info.',
