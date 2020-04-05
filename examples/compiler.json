@@ -10,9 +10,9 @@
     },
     {
         "extension": "py",
-        "command": ["python3 -c \"import\\ py_compile\\ as\\ m;m.compile('code.py','code.pyc',doraise=True)\""],
+        "command": ["python3 -c \"import py_compile as m;m.compile('code.py','code.pyc',doraise=True)\""],
         "output": "code.pyc",
-        "exec": "python3 code.pyc",
+        "exec": "/usr/bin/env python3 code.pyc",
         "test": "python3 --version",
         "input": "code.py",
         "timeout": 10000

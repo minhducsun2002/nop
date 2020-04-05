@@ -5,6 +5,7 @@ import { writeFileSync, copyFileSync, readFileSync } from 'fs';
 import { execSync, execFileSync } from 'child_process';
 import type { spawnSync } from 'child_process';
 import { Md5 } from 'md5-typescript';
+import yargs from 'yargs/yargs';
 import { problems, names } from '../tests/';
 import parseLog, { parseStatus } from './isolate';
 import { Verdict } from './verdicts';
@@ -110,7 +111,8 @@ export default function (
                         `-M${metaFile}`
                     ]
                     .concat(Object.keys(c.env).map(k => `--env=${k}=${c.env[k]}`))
-                    .concat(['--run', '--', exec]),
+                    .concat(['--run', '--'])
+                    .concat(yargs().parse(exec)._),
                     { encoding: 'utf8', stdio: ['ignore', 'inherit', 'pipe'] },
                 );
             } catch (e) {}
