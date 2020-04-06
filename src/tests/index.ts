@@ -1,13 +1,13 @@
 import { args } from '../args';
 import { componentLog } from '../logger';
-import { readdirSync, readFileSync, statSync } from 'fs';
+import { readdirSync, accessSync, statSync, existsSync, constants } from 'fs';
 import { resolve, join } from 'path';
 import chalk from 'chalk';
 import { validate } from './constraints';
 import merge from 'deepmerge';
 
 const logger = new componentLog('Tests', '#8b008b', '#fff');
-const input = 'input.txt', output = 'output.txt', constraints = 'constraints.json';
+const input = 'input.txt', output = 'output.txt', constraints = 'constraints.json', judge = 'judge.sh';
 
 interface Constraints {
     /** Maximum memory limit */
@@ -36,13 +36,9 @@ interface Constraints {
 }
 
 interface Test {
-    /**
-     * Path to input file
-     */
+    /** Path to input file */
     input: string;
-    /**
-     * Path to output file ("answer")
-     */
+    /** Path to output file ("answer") */
     output: string;
     /**
      * Test case name.
@@ -51,6 +47,8 @@ interface Test {
     name: string;
     /** Test constraints */
     constraints: Constraints;
+    /** Path to judger */
+    judge: string;
 }
 interface Problem { tests: Test[] }
 
@@ -63,9 +61,11 @@ let problems = new Map<string, Problem>();
 
 logger.info(`Reading tests for ${problemsList.length} problem(s) from ${chalk.cyanBright(testsPath)}...`);
 problemsList.forEach(p => {
+    // path to tests of this problem
     let pTests = join(testsPath, p);
-    let tests = readdirSync(pTests, 'utf8')
-        .filter(f => statSync(join(pTests, f)).isDirectory()),
+    // folder of each tests
+    let tests = readdirSync(pTests, 'utf8').filter(f => statSync(join(pTests, f)).isDirectory()),
+        // padding string
         _ = `==> `;
     logger.info(`${_}Preparing ${tests.length} test(s) for problem ${chalk.bgYellowBright.black(p)}`);
 
@@ -73,15 +73,18 @@ problemsList.forEach(p => {
     let globalConstraints : Partial<Constraints> = {};
     try { globalConstraints = require(join(pTests, constraints)) } catch {};
 
+    // global judge for this problem
+    let globalJudge = existsSync(join(pTests, judge)) && join(pTests, judge);
+
     // check test individually
     let __ = tests.map((t) : Test => {
-        // logger.info
-        let inp = join(testsPath, p, t, input),
-            out = join(testsPath, p, t, output),
-            con = join(testsPath, p, t, constraints);
-        // test if we can read this time
-        readFileSync(inp);
-        readFileSync(out);
+        let inp = join(pTests, t, input),
+            out = join(pTests, t, output),
+            con = join(pTests, t, constraints),
+            jdg = join(pTests, t, judge);
+
+        // test if we can read input/output
+        [inp, out].forEach(_ => accessSync(_, constants.R_OK));
 
         // local test constraints
         let localConstraints : Partial<Constraints> = {};
@@ -94,10 +97,27 @@ problemsList.forEach(p => {
             logger.error(`${e}`);
             throw new Error(`Validation for constraints of test "${t}" of problem "${p}" failed!`)
         }
+
+        // test if judge available
+        /**
+         * We check for test-specific judge first.
+         * If not found, we fall back to global judge, else test for execution capability as normal.
+         * The reason is that if test-specific judge is present but non-executable, it is probably
+         * a configuration error.
+         */
+        
+        if (!existsSync(jdg)) jdg = globalJudge;
+        if (!jdg) throw new Error(`Judge of test "${t}" of problem "${p}" isn't present!`)
+
+        try { accessSync(jdg, constants.X_OK) } catch (e) {
+            logger.error(`${e}`);
+            throw new Error(`Judge of test "${t}" of problem "${p}" isn't executable!`)
+        }
+
         // if there was any error, an error should have been thrown
         // at this point, tests are considered valid
         logger.success(`${' '.repeat(_.length)}Prepared test ${chalk.bgGrey(t)}.`);
-        return { input: inp, output: out, name: t, constraints: _constraints }
+        return { input: inp, output: out, name: t, constraints: _constraints, judge: jdg }
     })
     problems.set(p, { tests: __ })
 })

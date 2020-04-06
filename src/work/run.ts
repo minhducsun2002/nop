@@ -10,6 +10,7 @@ import { Verdict } from './verdicts';
 import parseCommand from 'argv-split';
 import { componentLog } from '../logger';
 import chalk from 'chalk';
+import judge from './judge';
 
 // prepare compilers
 const compilers = new Map<string, typeof c[0]>();
@@ -84,7 +85,7 @@ export default function (
 
         // run
         let { tests } = problems.get(prob);
-        let result = tests.map(({ input: _inp, output: _out, constraints: c }) => {
+        let result = tests.map(({ input: _inp, output: _out, constraints: c, judge: _judge }) => {
             // cleanup first
             execSync(`isolate --cg --cleanup -b ${boxId}`, { stdio: 'ignore' });
             // init
@@ -102,6 +103,9 @@ export default function (
 
             // meta file
             const metaFile = join(workspace, meta);
+            
+            // whether program executed without any error
+            let executionPassed = false;
             try {
                 execFileSync(
                     `isolate`, [
@@ -118,13 +122,15 @@ export default function (
                     .concat(Object.keys(c.env).map(k => `--env=${k}=${c.env[k]}`))
                     .concat(['--run', '--'])
                     .concat(parseCommand(exec)),
-                    { encoding: 'utf8', stdio: ['ignore', 'inherit', 'pipe'] },
+                    { encoding: 'utf8', stdio: ['ignore', 'inherit', 'pipe'] }
                 );
+                executionPassed = true;
             } catch (e) {}
-            let _ = parseLog(readFileSync(metaFile, 'utf8'));
+            let _ = parseLog(readFileSync(metaFile, 'utf8')),
+                accepted = judge(_judge, join(dir, 'box', names.output), _out);
             return {
-                score: c.score,
-                verdict: parseStatus(_.get('status')) || Verdict.ACCEPTED,
+                score: accepted ? c.score : 0,
+                verdict: parseStatus(_.get('status')) || (accepted ? Verdict.ACCEPTED : Verdict.WRONG_OUTPUT),
                 time: +_.get('time-wall'),
                 msg: (_.get('message') || '')
             }
