@@ -124,7 +124,7 @@ export default function (
             } catch (e) {}
             let _ = parseLog(readFileSync(metaFile, 'utf8'));
             return {
-                score: 1.0,
+                score: c.score,
                 verdict: parseStatus(_.get('status')) || Verdict.ACCEPTED,
                 time: +_.get('time-wall'),
                 msg: (_.get('message') || '')

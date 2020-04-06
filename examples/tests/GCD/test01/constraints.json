@@ -6,5 +6,6 @@
     "extraTime": 1.0,
     "env": {
         "ONLINE_JUDGE": "1"
-    }
+    },
+    "score": 1
 }

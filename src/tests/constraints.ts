@@ -9,7 +9,8 @@ export function validate(c : any) {
         wallTime: { presence: true, type: 'number' },
         cpuTime: { presence: true, type: 'number' },
         extraTime: { presence: true, type: 'number' },
-        env: { presence: true } 
+        env: { presence: true },
+        score: { presence: true, type: 'number' }
     })
 
     if (_) throw new TypeError(`Invalid test constraints :\n${_}`);

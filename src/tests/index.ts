@@ -28,6 +28,10 @@ interface Constraints {
      * Environment to passed to `isolate`
      */
     env: { [id: string]: string; };
+    /**
+     * Score
+     */
+    score: number;
 }
 
 interface Test {
