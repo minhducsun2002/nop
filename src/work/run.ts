@@ -32,15 +32,14 @@ export default function (
 ) {
     let { code, id, filename } = s;
     let ext = extname(filename).slice(1), prob = basename(filename, extname(filename));
-    // if no appropriate compiler found,
-    // just quit?
+    
     if (!compilers.has(ext))
-        // slice(1) as the dot is there
+        // if no appropriate compiler found,
+        // just quit
         return logger.error(`Could not find an appropriate compiler for ${id}/${filename}. I am quitting!`);
     
-
-    // if no problem found, quit altogether?
     if (!problems.has(prob))
+        // if no problem found, quit too
         return logger.error(`Could not determine problem code for ${id}/${filename}. You missed something.`);
 
     let { input , command, output, exec } = compilers.get(ext);
@@ -51,15 +50,15 @@ export default function (
     try {
         command.forEach(c => {
             let cmd = parseCommand(c);
-            let { stderr } = spawnSync(cmd[0], cmd.slice(1), {
+            let out = spawnSync(cmd[0], cmd.slice(1), {
                 encoding: 'utf8',
                 stdio: ['ignore', 'ignore', 'pipe'],
                 cwd: workspace
             });
-            compileLog.push(stderr);
+            compileLog.push(out.stderr);
+            if (out.status !== 0) throw out;
         })
     } catch (e) {
-        // console.log(e);
         let { pid, stderr, status, signal } = (e as ReturnType<typeof spawnSync>);
         return onResult({
             id,
