@@ -64,10 +64,12 @@ export default function (
     let outputPath = join(workspace, output);
     // maximum box count = 1000
     let boxId = parseInt(Md5.init(workspace + prob + id).slice(0, 4), 16) % 1000;
+    let clean = () => execSync(`isolate --cg --cleanup -b ${boxId}`, { stdio: 'ignore' });;
+
     try {
-        let result = problems.get(prob)
-            .tests.map(({ input: _inp, output: _out, constraints: c, judge: _judge }) => {
-            execSync(`isolate --cg --cleanup -b ${boxId}`, { stdio: 'ignore' });
+        let result = problems.get(prob).tests.map(
+            ({ input: _inp, output: _out, constraints: c, judge: _judge }) => {
+            clean();
             let dir = execSync(
                 `isolate --cg --init -b ${boxId}`, {
                     stdio: ['ignore', 'pipe', 'ignore'],
@@ -97,7 +99,7 @@ export default function (
 
             let _ = parseLog(readFileSync(metaFile, 'utf8')),
                 accepted = run.status === 0 ? judge(_judge, outputFile, _out) : false
-            
+            clean();
             return {
                 score: accepted ? c.score : 0,
                 verdict: parseStatus(_.get('status')) || (accepted ? Verdict.ACCEPTED : Verdict.WRONG_OUTPUT),

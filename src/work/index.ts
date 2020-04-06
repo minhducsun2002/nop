@@ -7,6 +7,8 @@ import { join } from 'path';
 import { componentLog } from '../logger';
 import '../tests/';
 import chalk from 'chalk';
+import rr from 'rimraf';
+import { args } from '../args';
 
 export interface Submission {
     filename: string;
@@ -24,13 +26,24 @@ export interface Result {
 
 class Worker extends EventEmitter {
     private queue = new Queue<Submission>();
-    private directory = mkdtempSync(join(tmpdir(), 'nop-worker-'), 'utf8');
+    private workspace = mkdtempSync(join(tmpdir(), 'nop-worker-'), 'utf8');
     private idle = true;
-    private logger = new componentLog('Worker');
+    private logger : componentLog;
 
-    constructor() {
+    /**
+     * Initializes a worker
+     * @param loggerTag Prefix for logger
+     * @param keepWorkspace Whether to keep workspace on process exit
+     */
+    constructor(keepWorkspace : boolean, loggerTag : string = 'Worker') {
         super();
-        this.logger.info(`Initialized worker to use workspace ${chalk.cyanBright(this.directory)}.`)
+        this.logger = new componentLog('Worker');
+        this.logger.info(`Initialized worker to use workspace ${chalk.cyanBright(this.workspace)}.`);
+        if (keepWorkspace)
+            process.on('exit', () => {
+                rr.sync(this.workspace);
+                this.logger.success(`Removed workspace at ${chalk.cyanBright(this.workspace)}`)
+            })
     }
 
     // this is the main method to prepare stuff
@@ -39,7 +52,7 @@ class Worker extends EventEmitter {
         while (this.queue.length) {
             let _ = this.queue.dequeue();
             // this.emit('', run(_, this.directory));
-            run(_, this.directory, r => {
+            run(_, this.workspace, r => {
                 this.logger.success(`Finished submission ${chalk.bgBlueBright.black(r.id)}.`)
                 this.emit('result', r)
             }, this.logger)
@@ -53,4 +66,4 @@ class Worker extends EventEmitter {
     }
 }
 
-export default new Worker();
+export default new Worker(args.keep);

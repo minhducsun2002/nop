@@ -23,6 +23,7 @@ export let args = yargs
         required: true
     })
     .option('version', {
+        alias: ['v'],
         description: 'Show version info.',
         type: 'boolean'
     })
@@ -31,5 +32,10 @@ export let args = yargs
         description: `Link to folder containing tests`,
         type: 'string',
         required: true
+    })
+    .option('keep', {
+        description: 'Whether to keep workspace folder when the program exits.',
+        type: 'boolean',
+        default: false
     })
     .argv
