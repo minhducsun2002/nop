@@ -2,7 +2,7 @@ import type { Submission, Result } from '.';
 import { compilers as c } from './compilers';
 import { extname, join, basename } from 'path';
 import { writeFileSync, copyFileSync, readFileSync } from 'fs';
-import { execSync, execFileSync, spawnSync } from 'child_process';
+import { execSync, spawnSync } from 'child_process';
 import { Md5 } from 'md5-typescript';
 import { problems, names } from '../tests/';
 import parseLog, { parseStatus } from './isolate';
@@ -11,6 +11,7 @@ import parseCommand from 'argv-split';
 import { componentLog } from '../logger';
 import chalk from 'chalk';
 import judge from './judge';
+import compile from './compile';
 
 // prepare compilers
 const compilers = new Map<string, typeof c[0]>();
@@ -35,99 +36,68 @@ export default function (
     let ext = extname(filename).slice(1), prob = basename(filename, extname(filename));
     
     if (!compilers.has(ext))
-        // if no appropriate compiler found,
-        // just quit
-        return logger.error(`Could not find an appropriate compiler for ${id}/${filename}. I am quitting!`);
+        return logger.error(`Could not find an appropriate compiler for ${id}/${filename}. Ignoring`);
     
     if (!problems.has(prob))
-        // if no problem found, quit too
-        return logger.error(`Could not determine problem code for ${id}/${filename}. You missed something.`);
+        return logger.error(`Could not determine problem code for ${id}/${filename}. Ignoring.`);
 
     let { input , command, output, exec } = compilers.get(ext);
 
     // write file to workspace
     writeFileSync(join(workspace, input), code);
     let compileLog = [] as string[];
-    try {
-        command.forEach(c => {
-            let cmd = parseCommand(c);
-            let out = spawnSync(cmd[0], cmd.slice(1), {
-                encoding: 'utf8',
-                stdio: ['ignore', 'ignore', 'pipe'],
-                cwd: workspace
-            });
-            compileLog.push(out.stderr);
-            if (out.status !== 0) throw out;
-        })
-    } catch (e) {
+    try { compile(workspace, command, s => compileLog.push(s)); } catch (e) {
         let { pid, stderr, status, signal } = (e as ReturnType<typeof spawnSync>);
         return onResult({
-            id,
-            verdict: 'CE',
-            totalScore: 0,
+            id, verdict: 'CE', totalScore: 0,
             msg: (stderr.length
                 ? stderr.toString() 
-                : (signal ? `Process PID ${pid} killed with signal ${signal}` : `Process exited with return code ${status}`)
+                : (signal
+                    ? `Process PID ${pid} killed with signal ${signal}`
+                    : `Process exited with return code ${status}`)
             )
         })
     }
 
-    // at this point, it can be considered submissions successfully compiled
-    let outputPath = join(workspace, output);
-    // now is time to run?
-    logger.info(`Successfully compiled submission ${chalk.bgBlueBright(id)}.`)
+    logger.success(`Prepared submission ${chalk.bgBlueBright.black(id)}.`)
     
+    let outputPath = join(workspace, output);
+    // maximum box count = 1000
+    let boxId = parseInt(Md5.init(workspace + prob + id).slice(0, 4), 16) % 1000;
     try {
-        // maximum box count = 1000
-        // isolate said so??
-        let boxId = parseInt(Md5.init(workspace + prob + id).slice(0, 4), 16) % 1000;
-        if (!Number.isSafeInteger(boxId)) boxId = 0;
-
-        // run
-        let { tests } = problems.get(prob);
-        let result = tests.map(({ input: _inp, output: _out, constraints: c, judge: _judge }) => {
-            // cleanup first
+        let result = problems.get(prob)
+            .tests.map(({ input: _inp, output: _out, constraints: c, judge: _judge }) => {
             execSync(`isolate --cg --cleanup -b ${boxId}`, { stdio: 'ignore' });
-            // init
-            let dir = execSync(`isolate --cg --init -b ${boxId}`, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' }).trim();
-            logger.info(`Initialized sandbox at ${chalk.yellowBright(dir)}.`);
-            
-            // copy file
-            copyFileSync(outputPath, join(dir, 'box', output));
-            logger.info(`Copied to ${chalk.yellowBright(join(dir, 'box', output))}.`)
+            let dir = execSync(
+                `isolate --cg --init -b ${boxId}`, {
+                    stdio: ['ignore', 'pipe', 'ignore'],
+                    encoding: 'utf8'
+                }
+            ).trim();
 
-            // copy tests
-            copyFileSync(_inp, join(dir, 'box', names.input));
-            logger.info(`Copied ${chalk.yellowBright(_inp)} to ${chalk.greenBright(join(dir, 'box', names.input))}`)
-            writeFileSync(join(dir, 'box', names.output), '');
+
+            let outputFile = join(dir, 'box', names.output);
+            copyFileSync(outputPath, join(dir, 'box', output)); // copy submission
+            copyFileSync(_inp, join(dir, 'box', names.input));  // copy tests
+            writeFileSync(outputFile, '');  // write empty output file
 
             // meta file
             const metaFile = join(workspace, meta);
-            
-            // whether program executed without any error
-            let executionPassed = false;
-            try {
-                execFileSync(
-                    `isolate`, [
-                        `-b ${boxId}`,
-                        `--cg`,
-                        `--cg-mem=${c.memory}`,
-                        `--time=${c.cpuTime}`,
-                        `--wall-time=${c.wallTime}`,
-                        `--stack=${c.stackSize}`,
-                        `-i${names.input}`,
-                        `-o${names.output}`,
-                        `-M${metaFile}`
-                    ]
-                    .concat(Object.keys(c.env).map(k => `--env=${k}=${c.env[k]}`))
-                    .concat(['--run', '--'])
-                    .concat(parseCommand(exec)),
-                    { encoding: 'utf8', stdio: ['ignore', 'inherit', 'pipe'] }
-                );
-                executionPassed = true;
-            } catch (e) {}
+
+            let run = spawnSync(`isolate`, [
+                    `-b ${boxId}`,
+                    `--cg`, `--cg-mem=${c.memory}`,
+                    `--time=${c.cpuTime}`, `--wall-time=${c.wallTime}`, `--stack=${c.stackSize}`,
+                    `-i${names.input}`, `-o${names.output}`, `-M${metaFile}`
+                ]
+                .concat(Object.keys(c.env).map(k => `--env=${k}=${c.env[k]}`))
+                .concat(['--run', '--']).concat(parseCommand(exec)),
+                { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }
+            )
+
             let _ = parseLog(readFileSync(metaFile, 'utf8')),
-                accepted = judge(_judge, join(dir, 'box', names.output), _out);
+                accepted = run.status === 0 ? judge(_judge, outputFile, _out) : false
+            
             return {
                 score: accepted ? c.score : 0,
                 verdict: parseStatus(_.get('status')) || (accepted ? Verdict.ACCEPTED : Verdict.WRONG_OUTPUT),
