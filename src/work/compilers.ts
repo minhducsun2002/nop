@@ -93,12 +93,12 @@ try {
             try {
                 // if it fails, it throws
                 execSync(_.test, { stdio: 'ignore' });
-                return { pass: true, info: `present` }
+                return { pass: true, info: `available` }
             } catch (err) {
                 return { pass: false, info: `${err}` }
             }
         },
-        `Compiler for ${_.extension} source code`
+        `Compiler for ${chalk.bgCyanBright.red(_.extension)} source code`
     ]))
     compilers = _;
 } catch (err) {
@@ -107,7 +107,6 @@ try {
 }
 
 // check
-logger.info('Checking environment...');
 logger.info(`Reading compilers declaration from ${chalk.greenBright(compiler_json_path)}.`)
 checks.forEach(([call, name]) => {
     let { pass, info } = (call as () => check)();
