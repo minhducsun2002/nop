@@ -13,7 +13,7 @@ export function validate(c : any) {
         score: { presence: true, type: 'number' }
     })
 
-    if (_) throw new TypeError(`Invalid test constraints :\n${_}`);
+    if (_) throw new TypeError(`Invalid test constraints :\n${JSON.stringify(_, null, 4)}`);
     if (v.isArray(c.env) || (!v.isObject(c.env)))
         throw new TypeError(`Invalid test constraints : env must be an object!`)
     let { env } = c as { [id: string]: any };

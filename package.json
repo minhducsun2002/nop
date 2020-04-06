@@ -22,6 +22,7 @@
     "argv-split": "git://github.com/cipherallies/node-argv-split#7ebd6beff9a57b067eee0d8409796db915b72581",
     "chalk": "^3.0.0",
     "crypto-js": "^4.0.0",
+    "deepmerge": "^4.2.2",
     "md5-typescript": "^1.0.5",
     "queue-typescript": "^1.0.1",
     "validate.js": "^0.13.1",

@@ -1,9 +1,10 @@
 import { args } from '../args';
 import { componentLog } from '../logger';
-import { readdirSync, readFileSync } from 'fs';
+import { readdirSync, readFileSync, statSync } from 'fs';
 import { resolve, join } from 'path';
 import chalk from 'chalk';
 import { validate } from './constraints';
+import merge from 'deepmerge';
 
 const logger = new componentLog('Tests', '#8b008b', '#fff');
 const input = 'input.txt', output = 'output.txt', constraints = 'constraints.json';
@@ -62,9 +63,17 @@ let problems = new Map<string, Problem>();
 
 logger.info(`Reading tests for ${problemsList.length} problem(s) from ${chalk.cyanBright(testsPath)}...`);
 problemsList.forEach(p => {
-    let tests = readdirSync(join(testsPath, p), 'utf8'),
+    let pTests = join(testsPath, p);
+    let tests = readdirSync(pTests, 'utf8')
+        .filter(f => statSync(join(pTests, f)).isDirectory()),
         _ = `==> `;
     logger.info(`${_}Preparing ${tests.length} test(s) for problem ${chalk.bgYellowBright.black(p)}`);
+
+    // global test constraints
+    let globalConstraints : Partial<Constraints> = {};
+    try { globalConstraints = require(join(pTests, constraints)) } catch {};
+
+    // check test individually
     let __ = tests.map((t) : Test => {
         // logger.info
         let inp = join(testsPath, p, t, input),
@@ -73,18 +82,22 @@ problemsList.forEach(p => {
         // test if we can read this time
         readFileSync(inp);
         readFileSync(out);
-        readFileSync(con);
+
+        // local test constraints
+        let localConstraints : Partial<Constraints> = {};
+        try { localConstraints = require(con) } catch {};
+
+        let _constraints = merge(globalConstraints, localConstraints) as Constraints;
+
         // test constraints format
-        try {
-            validate(require(con));
-        } catch (e) {
+        try { validate(_constraints); } catch (e) {
             logger.error(`${e}`);
             throw new Error(`Validation for constraints of test "${t}" of problem "${p}" failed!`)
         }
         // if there was any error, an error should have been thrown
         // at this point, tests are considered valid
         logger.success(`${' '.repeat(_.length)}Prepared test ${chalk.bgGrey(t)}.`);
-        return { input: inp, output: out, name: t, constraints: require(con) }
+        return { input: inp, output: out, name: t, constraints: _constraints }
     })
     problems.set(p, { tests: __ })
 })
