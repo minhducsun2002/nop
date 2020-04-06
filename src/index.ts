@@ -46,3 +46,4 @@ worker.on('result', (r: Result) => wsClient.send(JSON.stringify(r)));
 
 process.on('exit', () => log.info('Shutting down. Goodbye.'));
 process.on('uncaughtException', (err) => { log.error(`${err}`); process.exit(1); })
+process.on('unhandledRejection', (err) => { log.error(`${err}`); process.exit(1); })
