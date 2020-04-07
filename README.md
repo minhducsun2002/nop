@@ -7,7 +7,7 @@
   On my machine, the `isolate` binary has SUID on it, through the executable flag is only set for 
   users of group `isolate`.
 - Wafter must be built with commit later than
-  [`b5e1bfa49ad74d56752ff5413f225d982c7577d8`](https://github.com/vnma0/wafter/commit/b5e1bfa49ad74d56752ff5413f225d982c7577d8).
+  [`2c6be1f05344d56a73c8856704703e89e35a0a71`](https://github.com/vnma0/wafter/commit/2c6be1f05344d56a73c8856704703e89e35a0a71).
   
 ## Installation
 Currently, I don't have a solution to bundle all scripts into a single executable.
