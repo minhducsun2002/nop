@@ -27,13 +27,13 @@ Pass `--help` when you run the program. Alternatively see [`src/args.ts`](./src/
   Address to Wafter WebSocket endpoint. Most of the time it is `<host>:<port>/kon` or something similar.
 - `compilers`
   
-  Path to a JSON file containing an array listing available compilers. See [`compilers.md`](./compilers.md).
+  Path to a JSON file containing an array listing available compilers. See [`compilers.md`](./docs/compilers.md).
 - `version`
   
   Self-explanatory.
 - `tests`
   
-  A folder to keep tests for solutions. See [`tests.md`](./tests.md).
+  A folder to keep tests for solutions. See [`tests.md`](./docs/tests.md).
 - `keep`
 
   `nop` will create a workspace folder in the temporary location of the OS.
