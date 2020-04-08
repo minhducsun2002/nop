@@ -11,7 +11,7 @@ jobs:
     - name: Setup Node.js environment
       uses: actions/setup-node@v1.4.1
       with:
-        version: 12.16.0
+        node-version: 12.15.0
     - name: Install dependencies
       run: yarn
     - name: Transpile source code
@@ -20,3 +20,8 @@ jobs:
       run: yarn rollup
     - name: Pack into executable
       run: yarn package
+    - name: Publish build output
+      uses: actions/upload-artifact@v1
+      with:
+        name: nop-${{ github.sha }}
+        path: dist/
