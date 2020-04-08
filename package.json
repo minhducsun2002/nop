@@ -7,10 +7,12 @@
   "private": true,
   "devDependencies": {
     "@types/crypto-js": "^3.1.44",
+    "@types/mocha": "^7.0.2",
     "@types/node": "^13.9.5",
     "@types/rimraf": "^3.0.0",
     "@types/ws": "^7.2.3",
     "@types/yargs": "^15.0.4",
+    "mocha": "^7.1.1",
     "nexe": "^3.3.2",
     "rollup": "^2.3.3",
     "ts-node": "^8.8.1",
@@ -22,7 +24,8 @@
     "dev:preconfig": "ts-node-dev --respawn --no-notify --prefer-ts --transpile-only src/index.ts -k test -a localhost:3001/kon -t examples/contest1/tests -c examples/contest1/compiler.json",
     "transpile": "rimraf dist/ && tsc",
     "rollup": "rollup dist/index.js --format cjs --file dist/index.js",
-    "package": "nexe -i dist/index.js -o dist/nop -t 12.16.0"
+    "package": "nexe -i dist/index.js -o dist/nop -t 12.16.0",
+    "test": "mocha --require ts-node/register --recursive tests --extension ts"
   },
   "dependencies": {
     "argv-split": "git://github.com/cipherallies/node-argv-split#7ebd6beff9a57b067eee0d8409796db915b72581",

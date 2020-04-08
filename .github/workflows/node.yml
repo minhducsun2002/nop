@@ -1,9 +1,10 @@
-name: Build executable
+name: Run tests & build
 
 on: push
 
 jobs:
   build:
+    name: Build executable
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -25,3 +26,17 @@ jobs:
       with:
         name: nop-${{ github.sha }}
         path: dist/
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v1.4.1
+        with:
+          node-version: 12.15.0
+      - name: Install dependencies
+        run: yarn
+      - name: Run tests
+        run: yarn test
