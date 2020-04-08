@@ -4,13 +4,13 @@ v.validators.type.types['integer'] = (value : any) => Number.isSafeInteger(value
 
 export function validate(c : any) {
     let _ = v(c, {
-        memory: { presence: true, type: 'integer' },
-        stackSize: { presence: true, type: 'integer' },
-        wallTime: { presence: true, type: 'number' },
-        cpuTime: { presence: true, type: 'number' },
-        extraTime: { presence: true, type: 'number' },
+        memory: { presence: true, numericality: { onlyInteger: true, greaterThan: 0 } },
+        stackSize: { presence: true, numericality: { onlyInteger: true, greaterThan: 0 } },
+        wallTime: { presence: true, numericality: { greaterThan: 0 } },
+        cpuTime: { presence: true, numericality: { greaterThan: 0 } },
+        extraTime: { presence: true, numericality: { greaterThan: 0 } },
         env: { presence: true },
-        score: { presence: true, type: 'number' }
+        score: { presence: true, numericality: { greaterThanOrEqualTo: 0 } }
     })
 
     if (_) throw new TypeError(`Invalid test constraints :\n${JSON.stringify(_, null, 4)}`);
