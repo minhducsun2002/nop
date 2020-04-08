@@ -7,7 +7,7 @@
         "listEmittedFiles": true,
         "noImplicitAny": true,
         "outDir": "dist/",
-        "types": ["node", "mocha"],
+        "types": ["node", "jest"],
         "target": "ES5",
         "esModuleInterop": true,
         "emitDecoratorMetadata": false,
