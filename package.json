@@ -15,6 +15,8 @@
     "jest": "^25.2.7",
     "nexe": "^3.3.2",
     "rollup": "^2.3.3",
+    "rollup-plugin-add-shebang": "^0.3.1",
+    "rollup-plugin-executable": "^1.5.3",
     "ts-jest": "^25.3.1",
     "ts-node": "^8.8.1",
     "ts-node-dev": "^1.0.0-pre.44",
@@ -24,7 +26,7 @@
     "dev": "ts-node-dev --respawn --no-notify --prefer-ts --transpile-only src/index.ts",
     "dev:preconfig": "ts-node-dev --respawn --no-notify --prefer-ts --transpile-only src/index.ts -k test -a localhost:3001/kon -t examples/contest1/tests -c examples/contest1/compiler.json",
     "transpile": "rimraf dist/ && tsc",
-    "rollup": "rollup dist/index.js --format cjs --file dist/index.js",
+    "rollup": "rollup dist/index.js --config rollup.config.js --format cjs --file dist/index.js",
     "package": "nexe -i dist/index.js -o dist/nop -t 12.16.0",
     "test": "jest"
   },
