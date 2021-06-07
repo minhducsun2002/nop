@@ -20,6 +20,7 @@ export interface Result {
     id: Submission['id'];
     totalScore: number;
     verdict?: string;
+    verdBit?: number;
     tests?: { score: number; time: number; verdict: string; msg: string; }[]
     msg?: string;
 }

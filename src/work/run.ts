@@ -5,8 +5,8 @@ import { writeFileSync, copyFileSync, readFileSync } from 'fs';
 import { execSync, spawnSync } from 'child_process';
 import { Md5 } from 'md5-typescript';
 import { problems, names } from '../tests/';
-import parseLog, { parseStatus } from './isolate';
-import { Verdict } from './verdicts';
+import parseLog, { parseStatus, parseStatusBit } from './isolate';
+import { Verdict, BitVerdict } from './verdicts';
 import parseCommand from 'argv-split';
 import { componentLog } from '../logger';
 import chalk from 'chalk';
@@ -49,9 +49,10 @@ export default function (
     try { compile(workspace, command, s => compileLog.push(s)); } catch (e) {
         let { pid, stderr, status, signal } = (e as ReturnType<typeof spawnSync>);
         return onResult({
-            id, verdict: 'CE', totalScore: 0,
+            id, verdict: 'CE', totalScore: null,
+            tests: [],
             msg: (stderr.length
-                ? stderr.toString() 
+                ? stderr.toString()
                 : (signal
                     ? `Process PID ${pid} killed with signal ${signal}`
                     : `Process exited with return code ${status}`)
@@ -103,6 +104,7 @@ export default function (
             return {
                 score: accepted ? c.score : 0,
                 verdict: parseStatus(_.get('status')) || (accepted ? Verdict.ACCEPTED : Verdict.WRONG_OUTPUT),
+                verdBit: parseStatusBit(_.get('status')) || (accepted ? BitVerdict.ACCEPTED : BitVerdict.WRONG_OUTPUT),
                 time: +_.get('time-wall'),
                 msg: (_.get('message') || '')
             }

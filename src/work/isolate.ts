@@ -1,4 +1,4 @@
-import { Verdict } from './verdicts';
+import { Verdict, BitVerdict } from './verdicts';
 
 // parse isolate meta files
 export default function (s: string) {
@@ -16,12 +16,27 @@ export function parseStatus (s: string) {
 
     // non zero exit
     if (s.toUpperCase() === 'RE') return Verdict.RUNTIME_ERROR;
-    // killed by signal 
+    // killed by signal
     if (s.toUpperCase() === 'SG') return Verdict.RUNTIME_ERROR;
     // time out
     if (s.toUpperCase() === 'TO') return Verdict.TIME_LIMIT_EXCEEDED;
     // internal error -> run-time error
     if (s.toUpperCase() === 'XX') return Verdict.RUNTIME_ERROR;
+
+    return null;
+}
+
+export function parseStatusBit (s: string) {
+    if (!s) return null;
+
+    // non zero exit
+    if (s.toUpperCase() === 'RE') return BitVerdict.RUNTIME_ERROR;
+    // killed by signal
+    if (s.toUpperCase() === 'SG') return BitVerdict.RUNTIME_ERROR;
+    // time out
+    if (s.toUpperCase() === 'TO') return BitVerdict.TIME_LIMIT_EXCEEDED;
+    // internal error -> run-time error
+    if (s.toUpperCase() === 'XX') return BitVerdict.RUNTIME_ERROR;
 
     return null;
 }
